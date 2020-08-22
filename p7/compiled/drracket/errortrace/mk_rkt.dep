@@ -1,0 +1,1 @@
+("7.2" racket ("46a47863960dfd6988c7545fbf4eb4e39347c6cb" . "9b798ffe13ef55d08b6909f5316e9833023bf669") (collects #"errortrace" #"errortrace-key.rkt") (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt") (collects #"racket" #"trace.rkt") (ext . #"C:\\Users\\scase\\Documents\\School Files\\Programming Languages\\cs401workspace\\p7\\mk.scm"))

@@ -1,0 +1,159 @@
+#lang racket 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+;	  
+; Project 3 -- Exercises in Racket 
+;
+; The goal of this lab is to write six/seven functions in Racket.	   	
+;	   	
+; Each is described in comments below. The last is optional for CS 401.	  
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+
+
+(provide list-reverse
+         list-append
+         zip-lists
+         slice-list 
+         palindrome?
+         interp-arith 
+         reduce-lambda)	  
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	  
+;	  
+; Honor pledge (please write your name.) 
+;	  
+; I **Samuel Casey** have completed this code myself, without	  
+; unauthorized assistance, and have followed the academic honor code.
+;	   	
+; Edit the code below to complete your solution.	  
+;	   	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
+
+
+; Define a list-reverse function that takes a list to its reverse	  
+;;; e.g., (list-reverse '(1 2 3)) => '(3 2 1)
+(define (list-reverse lst)
+  (if (null? lst)
+      '()
+      (append (list-reverse (list-tail lst 1)) (list (first lst)))
+      )
+  )	   	
+
+	
+; Define an list-append function which takes two lists and returns their concatenation	   	
+;;; e.g., (list-append '(1) '(2 3)) => '(1 2 3)	   	
+(define (list-append lst0 lst1)
+  (define lst (list))
+  (for ([i lst0])
+    (set! lst (append lst (list i)))
+    )    
+  (for ([i lst1])
+    (set! lst (append lst (list i)))
+    )    
+  lst)
+
+; Define a zip-lists function that takes multiple lists and zips them together into 
+; a list of lists where each inner list is a list of all ith elements from input lists	   	
+;;; e.g., (zip-lists '(1 2 3) '(a b c)) => '((1 a) (2 b) (3 c)) 
+; zipping should stop at the end of the shortest list and should support zipping 
+; any number of lists together	  
+;;; e.g., (zip-lists '(1) '(2 3 4) '(5 6)) => '((1 2 5))
+	   	
+(define (zip-lists . args)
+  (cond
+    [(= (length args) 1)
+     (set! args (first args))
+     (if (not (list? (first args)))
+         (set! args (list args))
+         (+ 0 0))
+     ]
+    )
+  (cond
+    [(null? args) `()]
+    [(member (list) args) `()]
+    [else
+     (append (list(map first args))(zip-lists (map rest args)))]
+    )  
+  )
+
+;(zip-lists '(1) '(2 3 4) '(5 6))
+;(zip-lists '(1 2 3) '(a b c))
+;(zip-lists '(1 2))
+;(zip-lists)
+
+; Define a slice-list function that takes a list, start position, and	
+; end position to a list of elements between the given positions (inclusive)	  
+;;; e.g., (slice-list '(1 2 3 4 5) 2 3) => '(3 4)	   	
+; any part of the requested list that is non-existent should be trimmed
+;;; e.g., (slice-list '(1 2) 1 4) => '(2)	   	
+; if the range of the slice is empty/nonexistent, then the result should be '()	  
+
+(define (slice-list lst n m)
+  (cond
+    [(< m n) `()]
+    [(< (length lst) n) `()]
+    [(> (length lst) m) (list-tail (take lst (+ m 1)) n )]
+    [else (list-tail lst n)]
+    )
+  )
+; Define a palindrome? predicate that only returns true for strings that are palindromes 
+;;; e.g., (palindrome? "abcdcba") => #t	  
+
+(define (palindrome? s)	  
+  (if (<= (string-length s) 1)
+      #t
+      (if (char=? (string-ref (string-downcase s) 0) (string-ref (string-downcase s) (- (string-length s) 1)))
+          (palindrome? (substring s 1 (- (string-length s) 1)))
+          #f
+          )
+      )
+  )
+
+; Define function interp-arith---an arithmetic interpreter for the language:	   	
+; e ::= (+ e e) | (- e e) | (* e e) | (** e e) | n	   	
+; encoded as lists, where n is a number? and ** performs exponentiation 
+;;; e.g., (interp-arith '(+ (* 2 3) (- 11 (** 2 3)))) => 9
+
+(define (interp-arith e)
+  (cond
+    [(number? e) e]
+    [(equal? (car e) '+) (+ (interp-arith (second e)) (interp-arith (second (cdr e))))]
+    [(equal? (car e) '- ) (- (interp-arith (second e)) (interp-arith (second (cdr e))))]
+    [(equal? (car e) '*) (* (interp-arith (second e)) (interp-arith (second (cdr e))))]
+    [(equal? (car e) '**) (expt (interp-arith (second e)) (interp-arith (second (cdr e))))]
+    )
+  )
+;(interp-arith '(+ (* 2 3) (- 11 (** 2 3))))
+
+; Define a function reduce-lambda, that takes a lambda term in language:
+; e ::= (lambda (x) e) | (e e) | x   (encoded as a list; x is a symbol?)	   	
+; and performs a single step of beta-reduction using CBN evaluation	
+;;; e.g., (interp-lambda '((lambda (a) a) ((lambda (b) b) (lambda (c) c))))	   	
+;;;          => '((lambda (b) b) (lambda (c) c))	  
+; This function is bonus for CS 401, required for CS 501 (assume correct input) 
+
+(define (reduce-lambda exp)	
+  (if (equal? (first exp) `lambda)
+      (if (equal? (second exp)
+                  (if (list? (third exp))
+                      (third exp)
+                      (list (third exp))
+                      )
+                  )
+          #f
+          (third exp)
+          )
+      (if (reduce-lambda (first exp))
+          (reduce-lambda (first exp))
+          (second exp)
+          )
+      )
+      )
+;(reduce-lambda `((lambda (x) x) y)) ;y
+;(reduce-lambda `((lambda (x) z) y)) ;z
+;(reduce-lambda `((lambda (x) (z x)) x)) ;(z,x)
+;(reduce-lambda `((lambda (a) (lambda (a) a)) (lambda (b) b))) ;(lambda (a) a)
+;(reduce-lambda `((lambda (x) (lambda (y) x)) z)) ; (lambda (y) z)
+;(reduce-lambda `(((lambda (x) (lambda (y) (x y))) y) x)) ; (y x)
